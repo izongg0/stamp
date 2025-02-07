@@ -2,9 +2,9 @@ package odin.stamp.common.authentication;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import odin.stamp.common.exception.JwtAuthenticationException;
+import odin.stamp.user.account.Account;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -12,17 +12,11 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
-@Slf4j
 @Component
+@Slf4j
 public class TokenProvider {
 
     private final String secretKey;
-
-    // bearer type
-    private static final String BEARER_TYPE = "Bearer ";
-
-    // header authorization key
-    private static final String AUTHORIZATION_KEY = "Authorization";
 
     // accessToken 유효 시간
     private static final long ACCESS_TOKEN_VALID_TIME = 1000L * 60 * 60 * 2;
@@ -36,17 +30,14 @@ public class TokenProvider {
 
     /**
      * Access Token 발급
-     * @param accountId
-     * @param email
+     * @param account
      * @return
      */
-    public String generateAccessToken(Long accountId, String email, String name) {
+    public String generateAccessToken(Account account) {
+        Claims claims = generateClaims(account.getEmail(), ACCESS_TOKEN_VALID_TIME);
 
-        Claims claims = generateClaims(email, ACCESS_TOKEN_VALID_TIME);
-
-        claims.put("id", accountId);
-        claims.put("name", name);
-        log.info("🔎 JWT Claims2222: {}", claims);  // ✅ JWT 내부 정보 확인용 로그
+        claims.put("id", account.getId());
+        claims.put("name", account.getName());
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -60,7 +51,6 @@ public class TokenProvider {
      * @return
      */
     public String generateRefreshToken(String email) {
-
         Claims claims = generateClaims(email, REFRESH_TOKEN_VALID_TIME);
 
         return Jwts.builder()
@@ -70,78 +60,17 @@ public class TokenProvider {
     }
 
     /**
-     * Token Resolve
-     * @param request
-     * @return
-     */
-    public String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader(AUTHORIZATION_KEY);
-        log.info("🛠 Authorization Header: {}", bearerToken); // ✅ JWT가 정상적으로 넘어오는지 확인
-
-        if (bearerToken == null || !bearerToken.startsWith(BEARER_TYPE)) {
-            throw new JwtAuthenticationException("authenticationFailed.account.token");
-        }
-
-        return bearerToken.substring(7);
-    }
-
-    /**
-     * accessToken으로 authenticationInfo로 변환
-     * @param accessToken
-     * @return
-     */
-    public AuthenticationInfo getAuthenticationInfoByAccessToken(String accessToken) {
-        Claims claims = Jwts.parserBuilder().
-                setSigningKey(getSecretKey()).build().parseClaimsJws(accessToken).getBody();
-        log.info("🔎 JWT Claims: {}", claims);  // ✅ JWT 내부 정보 확인용 로그
-
-        return AuthenticationInfo.of(
-                claims.get("id", Long.class),
-                claims.getSubject(),
-                claims.get("name", String.class)
-        );
-    }
-
-    public String getEmailByRefreshToken(String refreshToken) {
-
-        return Jwts.parserBuilder()
-                .setSigningKey(getSecretKey())
-                .build()
-                .parseClaimsJws(refreshToken)
-                .getBody()
-                .getSubject();
-
-    }
-
-    /**
-     * 토큰 validation
-     * @param token
-     * @return
-     */
-    public Boolean validateToken(String token) {
-        try {
-            Jws<Claims> claims = Jwts.parserBuilder().
-                    setSigningKey(getSecretKey()).build().parseClaimsJws(token);
-            log.info("✅ JWT Token is valid");
-
-            return !claims.getBody().getExpiration().before(new Date());
-
-        } catch (JwtException | IllegalArgumentException ignored) {
-
-        }
-        return false;
-    }
-
-    /**
      * claims 생성
+     * 사용자 정보, 토큰 발급시간, 토큰 만료 시간 등을 저장한 객체를 반환
      * @param subject
      * @param validTime
      * @return
      */
     private Claims generateClaims(String subject, long validTime) {
+
         Date issuedAt = new Date();
         Date expiration = new Date(issuedAt.getTime() + validTime);
-
+        log.info("claim subject ? {}",subject);
         return Jwts.claims()
                 .setSubject(subject)
                 .setIssuedAt(issuedAt)
@@ -149,13 +78,50 @@ public class TokenProvider {
     }
 
     /**
+     * 토큰으로 사용자 정보를 만들어냄.
+     * 옳은 사용자인지 확인하는 용도
+     */
+    public boolean validateToken(String token) {
+        try {
+            // 토큰을 파싱하여 Claims를 추출
+            Jws<Claims> claims = Jwts.parserBuilder()
+                    .setSigningKey(getSecretKey())  // 서명 검증을 위한 SecretKey
+                    .build()
+                    .parseClaimsJws(token);
+            log.info("토큰 검증 {}",claims);
+            // 만료일 검사
+            Date expiration = claims.getBody().getExpiration();
+            if (expiration.before(new Date())) {
+                return false;
+            }
+
+            return true;
+
+        } catch (JwtException | IllegalArgumentException e) {
+            // 토큰이 잘못되었거나, 만료되었거나, 서명이 맞지 않으면 예외 발생
+            return false;
+        }
+    }
+
+    public Claims getClaims(String token) {
+        try {
+            // JWT 토큰을 파싱하여 Claims를 추출
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSecretKey())  // 서명 검증을 위한 SecretKey
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();  // JWT에서 Claims 추출
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new JwtAuthenticationException("Invalid or expired JWT token.");
+        }
+    }
+
+    /**
      * secret key 생성
      * @return
      */
     private SecretKey getSecretKey() {
-
-        log.info("🔑 JWT Secret Key: {}", secretKey.getBytes(StandardCharsets.UTF_8));  // ✅ 키가 null이 아닌지 확인
-
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 }
+

@@ -2,8 +2,6 @@ package odin.stamp.user.account;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import odin.stamp.common.authentication.AuthenticationInfo;
-import odin.stamp.common.authentication.annotations.NoAuthentication;
 import odin.stamp.common.exception.ValidationIllegalArgumentException;
 import odin.stamp.user.account.dto.AccountCreateReqDto;
 import odin.stamp.user.account.dto.AccountSignInGetReqDto;
@@ -25,15 +23,7 @@ public class AccountController {
     private final AccountService accountService;
     private final UserSignUpReqValidator userSignUpReqValidator;
 
-    /**
-     * 인증 정보
-     * @param request
-     * @return
-     */
-    @GetMapping
-    public ResponseEntity<AuthenticationInfo> getAuthenticationInfo(AuthenticationInfo authInfo) {
-        return ResponseEntity.ok(authInfo);
-    }
+
 
     @PostMapping("/sign-up")
 //    @NoAuthentication
@@ -59,7 +49,6 @@ public class AccountController {
      * @return
      */
     @PostMapping("/sign-in")
-    @NoAuthentication
     public ResponseEntity<AccountSignInGetResDto> signIn(
             @RequestBody @Validated AccountSignInGetReqDto accountSignInGetReqDto,
             BindingResult bindingResult) {
@@ -78,16 +67,15 @@ public class AccountController {
      * @param refreshToken
      * @return
      */
-    @PostMapping("/token/re-issuance")
-    @NoAuthentication
-    public ResponseEntity<AccountTokenGetResDto> AccessTokenReIssuance(
-            @RequestHeader(name="Authorization") String refreshToken) {
-
-        Token token = accountService.reIssuance(refreshToken);
-
-        return ResponseEntity.ok(new AccountTokenGetResDto(
-                token.getAccessToken(), token.getRefreshToken()));
-    }
+//    @PostMapping("/token/re-issuance")
+//    public ResponseEntity<AccountTokenGetResDto> AccessTokenReIssuance(
+//            @RequestHeader(name="Authorization") String refreshToken) {
+//
+//        Token token = accountService.reIssuance(refreshToken);
+//
+//        return ResponseEntity.ok(new AccountTokenGetResDto(
+//                token.getAccessToken(), token.getRefreshToken()));
+//    }
 
 
 }

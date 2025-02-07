@@ -2,7 +2,6 @@ package odin.stamp.user.account;
 
 import lombok.RequiredArgsConstructor;
 import odin.stamp.common.authentication.TokenProvider;
-import odin.stamp.common.authentication.util.PasswordEncoder;
 import odin.stamp.common.exception.JwtAuthenticationException;
 import odin.stamp.user.account.dto.AccountCreateReqDto;
 import odin.stamp.user.account.dto.AccountSignInGetDto;
@@ -10,6 +9,7 @@ import odin.stamp.user.account.exception.AccountAlreadyExistsException;
 import odin.stamp.user.account.exception.AccountNotFoundException;
 import odin.stamp.user.account.exception.UserAlreadyExistsException;
 import odin.stamp.user.account.repository.AccountRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +30,7 @@ public class AccountService {
             throw new AccountAlreadyExistsException();
         }
 
-        String encryptedPassword = passwordEncoder.getEncrypt(accountCreateReqDto.getPassword());
+        String encryptedPassword = passwordEncoder.encode(accountCreateReqDto.getPassword());
 
         // 암호화 비밀번호 저장
         Account account = accountCreateReqDto.toAccount();
@@ -43,51 +43,54 @@ public class AccountService {
     @Transactional
     public Token signIn(AccountSignInGetDto accountSignInGetDto) {
         String email = accountSignInGetDto.getEmail();
+        String rawPassword = accountSignInGetDto.getPassword();
 
-        // 계정 존재 여부 확인
+        // 1️⃣ 계정 조회
         Account account = accountRepository.findByEmail(email)
-                .orElseThrow(AccountNotFoundException::new);
+                .orElseThrow(() -> new RuntimeException("로그인 실패"));
 
-        // 비밀번호 복호화
-        if (!passwordEncoder.getEncrypt(accountSignInGetDto.getPassword()).equals(account.getPassword())) {
-            throw new AccountNotFoundException();
+        // 2️⃣ 비밀번호 검증
+        if (!passwordEncoder.matches(rawPassword, account.getPassword())) {
+            throw new RuntimeException("로그인 실패");
         }
 
-        // 마지막 로그인 일시 업데이트
+        // 3️⃣ 마지막 로그인 시간 업데이트
         account.updateLastLogonAt();
 
-        // 토큰 발급 및 반환
-        return new Token(
-                tokenProvider.generateAccessToken(account.getId(), account.getEmail(), account.getName()),
-                tokenProvider.generateRefreshToken(account.getEmail())
-        );
+        // 4️⃣ AccessToken & RefreshToken 생성
+        String accessToken = tokenProvider.generateAccessToken(account);  // Account 객체를 그대로 넘김
+        String refreshToken = tokenProvider.generateRefreshToken(account.getEmail());  // 이메일만 넘김
+
+        return new Token(accessToken, refreshToken);
     }
 
-    /**
-     * 토큰 재발급
-     * @param refreshToken
-     * @return
-     */
-    public Token reIssuance(String refreshToken) {
-        // Refresh token 검증
-        if(refreshToken == null || !tokenProvider.validateToken(refreshToken)) {
-            throw new JwtAuthenticationException("authenticationFailed.account.token");
-        }
 
-        // Refresh token에서 이메일 변환
-        Account account = accountRepository
-                .findByEmail(tokenProvider.getEmailByRefreshToken(refreshToken))
-                .orElseThrow(AccountNotFoundException::new);
 
-        // token 재발급
-        return new Token(
-                tokenProvider.generateAccessToken(
-                        account.getId(),
-                        account.getEmail(),
-                        account.getName()),
-                tokenProvider.generateRefreshToken(
-                        account.getEmail()
-                )
-        );
-    }
+//    /**
+//     * 토큰 재발급
+//     * @param refreshToken
+//     * @return
+//     */
+//    public Token reIssuance(String refreshToken) {
+//        // Refresh token 검증
+//        if(refreshToken == null || !tokenProvider.validateToken(refreshToken)) {
+//            throw new JwtAuthenticationException("authenticationFailed.account.token");
+//        }
+//
+//        // Refresh token에서 이메일 변환
+//        Account account = accountRepository
+//                .findByEmail(tokenProvider.getEmailByRefreshToken(refreshToken))
+//                .orElseThrow(AccountNotFoundException::new);
+//
+//        // token 재발급
+//        return new Token(
+//                tokenProvider.generateAccessToken(
+//                        account.getId(),
+//                        account.getEmail(),
+//                        account.getName()),
+//                tokenProvider.generateRefreshToken(
+//                        account.getEmail()
+//                )
+//        );
+//    }
 }
