@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import odin.stamp.common.entity.BaseEntity;
+import odin.stamp.store.Store;
 
 import java.time.LocalDateTime;
 
@@ -29,6 +30,9 @@ public class Account extends BaseEntity {
     private LocalDateTime lastLogonAt;
 
     private boolean isWithdrawal;
+
+    @OneToOne(mappedBy= "account",fetch = FetchType.LAZY)
+    private Store store;
 
     private Account(String name, String email, String password) {
         this.name = name;
@@ -57,5 +61,10 @@ public class Account extends BaseEntity {
 
     public void withdraw() {
         isWithdrawal = true;
+    }
+
+    public void setStore(Store store){
+
+
     }
 }
