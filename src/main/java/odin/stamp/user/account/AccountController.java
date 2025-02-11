@@ -36,7 +36,7 @@ public class AccountController {
     }
 
     @PostMapping("/sign-up")
-//    @NoAuthentication
+    @NoAuthentication
     public ResponseEntity<Void> signIn(
             @RequestBody AccountCreateReqDto accountCreateReqDto
             , BindingResult bindingResult
