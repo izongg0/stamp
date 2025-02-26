@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: stamp
+
+  datasource:
+    url: jdbc:mariadb://localhost:3306/stamp
+    username: root
+    password: 1234
+    driver-class-name: org.mariadb.jdbc.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.MariaDBDialect
+    hibernate:
+      ddl-auto: update
+
+jwt:
+  secretKey: dcf0121fac552a559245f91e9f93962b8350c0773b5e7344473550c4857cf81e
+
+password:
+  salt: 378354ae1e66d4c01d54dadc877b876d6f132d0310f6f7e7ab76d9ada8a76e66
+
+springdoc:
+  packages-to-scan: odin.stamp
+  default-consumes-media-type: application/json;charset=UTF-8
+  default-produces-media-type: application/json;charset=UTF-8
+  swagger-ui:
+    path: /
+    disable-swagger-default-url: true
+    display-request-duration: true
+    operations-sorter: path
+    tags-sorter: alpha
+  api-docs:
+    groups:
+      enabled: true
+  cache:
+    disabled: true
+logging:
+  level:
+    org.hibernate.SQL: debug

@@ -1,0 +1,52 @@
+package odin.stamp.stampconfig;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import odin.stamp.stampconfig.dto.StampConfigUpdateDto;
+import odin.stamp.stampconfig.repository.StampConfigRepository;
+import odin.stamp.store.Store;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@RequiredArgsConstructor
+@Service
+@Transactional(readOnly = true)
+@Slf4j
+public class StampConfigService {
+
+    private final StampConfigRepository stampConfigRepository;
+
+    public StampConfig create(Store store){
+        StampConfig stampConfig = StampConfig.of(store);
+        return stampConfigRepository.save(stampConfig);
+    }
+
+    @Transactional
+    public void update(StampConfigUpdateDto dto,Long storeId){
+
+        StampConfig stampConfig = stampConfigRepository.findByStoreId(storeId)
+                .orElseThrow(() -> new EntityNotFoundException("스탬프 설정을 찾을 수 없습니다. " + storeId));
+
+        stampConfig.update(
+                dto.getCompletedStampCount(),
+                dto.getMaxStampCount(),
+                dto.getRewardItem(),
+                dto.getStampCollectRule(),
+                dto.getRecollectTime(),
+                dto.getStampValidityPeriod(),
+                dto.getUsePassword()
+        );
+    }
+
+    public StampConfig get(Long storeId){
+        return stampConfigRepository.findByStoreId(storeId)
+                .orElseThrow(() -> new EntityNotFoundException("스탬프 설정을 찾을 수 없습니다. " + storeId));
+    }
+
+
+
+
+}
