@@ -1,12 +1,11 @@
 package odin.stamp.store;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import odin.stamp.common.entity.BaseEntity;
-import odin.stamp.customer.Customer;
-import odin.stamp.stamp.config.StampConfig;
+import odin.stamp.customer.StoreCustomer;
+import odin.stamp.stampconfig.StampConfig;
 import odin.stamp.user.account.Account;
 
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ import java.util.List;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "stores")
 public class Store extends BaseEntity {
 
@@ -48,10 +47,21 @@ public class Store extends BaseEntity {
     private String registrationNumber;
 
     /** 상점 활성화여부 */
-    private boolean isActive;
+    @Setter
+    private boolean isActive = true;
 
-    @OneToMany(mappedBy = "store")
-    private List<Customer> customers = new ArrayList<>();
+    @OneToMany(mappedBy = "store",fetch = FetchType.LAZY)
+    private List<StoreCustomer> storeCustomers = new ArrayList<>();
 
+    public Store(Account account, String name, String phoneNumber, String registrationNumber) {
+        this.account = account;
+        this.name = name;
+        this.phoneNumber = phoneNumber;
+        this.registrationNumber = registrationNumber;
+    }
+
+    public static Store of(Account account, String name, String phoneNumber, String registrationNumber) {
+        return new Store(account,name,phoneNumber,registrationNumber);
+    }
 
 }

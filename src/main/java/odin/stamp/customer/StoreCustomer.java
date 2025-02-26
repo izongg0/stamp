@@ -5,7 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import odin.stamp.common.entity.BaseEntity;
-import odin.stamp.stamp.log.StampLog;
+import odin.stamp.stamp.StampLog;
 import odin.stamp.store.Store;
 
 import java.time.LocalDateTime;
@@ -29,8 +29,8 @@ public class StoreCustomer extends BaseEntity {
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
-    @OneToMany(mappedBy = "storeCustomer")
-    private List<StampLog> stampLogs = new ArrayList<>();
+    @OneToMany(mappedBy = "storeCustomer",fetch = FetchType.LAZY)
+    private final List<StampLog> stampLogs = new ArrayList<>();
 
     /** 몇번 스탬프 적립 완료 했는지 */
     private int completedCount;
@@ -43,5 +43,18 @@ public class StoreCustomer extends BaseEntity {
 
     /** 언제 고객 만료 되는지 */
     private LocalDateTime expiration_date;
+
+    public static StoreCustomer of(Store store,Customer customer){
+        StoreCustomer storeCustomer = new StoreCustomer();
+        storeCustomer.store = store;
+        storeCustomer.customer = customer;
+        return storeCustomer;
+    }
+
+    public void updateLastCollectedDate(){
+        this.lastCollectedDate = LocalDateTime.now();
+
+        // Todo 고객 만료일도 업데이트
+    }
 
 }

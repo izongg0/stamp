@@ -23,8 +23,16 @@ public class Customer extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
     private String phoneNumber;
 
-    @OneToMany(mappedBy = "customer")
+    @OneToMany(mappedBy = "customer",fetch = FetchType.LAZY)
     private List<StoreCustomer> storeCustomers = new ArrayList<>();
+
+    public static Customer of(String phoneNumber){
+        Customer customer = new Customer();
+        customer.phoneNumber = phoneNumber;
+        return customer;
+    }
+
 }

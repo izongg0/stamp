@@ -20,6 +20,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -37,13 +38,16 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)  // CSRF 비활성화
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용 안 함
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/sign-in", "/sign-up").permitAll()  // 로그인, 회원가입 허용
+                        .requestMatchers("/sign-in", "/sign-up",
+                                "/","/swagger-ui/**", "/v3/api-docs/**"
+                                ).permitAll()  // 로그인, 회원가입 허용
                         .anyRequest().authenticated()  // 나머지는 인증 필요
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(authenticationEntryPoint)  // 인증 실패 시 처리
                         .accessDeniedHandler(accessDeniedHandler)  // 접근 거부 처리
                 )
+
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);  // JWT 필터 추가
 
         return http.build();
@@ -67,13 +71,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();  // 비밀번호 암호화 설정
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter(tokenProvider, userDetailsService);
     }
 
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(tokenProvider, userDetailsService);
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();  // 패스워드 암호화 방식 설정
     }
 }
 

@@ -1,5 +1,6 @@
 package odin.stamp.user.account;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -31,6 +32,7 @@ public class Account extends BaseEntity {
 
     private boolean isWithdrawal;
 
+    @JsonIgnore
     @OneToOne(mappedBy= "account",fetch = FetchType.LAZY)
     private Store store;
 

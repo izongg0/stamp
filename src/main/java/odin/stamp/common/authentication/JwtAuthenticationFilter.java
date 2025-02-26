@@ -32,7 +32,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        log.info("필터 시작");
         String token = resolveToken(request);
 
         if (token != null && tokenProvider.validateToken(token)) {
@@ -46,7 +45,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
-        log.info("필터 종료?");
 
         filterChain.doFilter(request, response);
     }

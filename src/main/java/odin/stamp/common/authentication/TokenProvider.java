@@ -70,7 +70,6 @@ public class TokenProvider {
 
         Date issuedAt = new Date();
         Date expiration = new Date(issuedAt.getTime() + validTime);
-        log.info("claim subject ? {}",subject);
         return Jwts.claims()
                 .setSubject(subject)
                 .setIssuedAt(issuedAt)
@@ -88,7 +87,6 @@ public class TokenProvider {
                     .setSigningKey(getSecretKey())  // 서명 검증을 위한 SecretKey
                     .build()
                     .parseClaimsJws(token);
-            log.info("토큰 검증 {}",claims);
             // 만료일 검사
             Date expiration = claims.getBody().getExpiration();
             if (expiration.before(new Date())) {
