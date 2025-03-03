@@ -20,7 +20,7 @@ public interface StampLogRepository extends JpaRepository<StampLog,Long> {
             "JOIN FETCH s.storeCustomer " +
             "WHERE s.storeCustomer.id = :storeCustomerId " +
             "AND s.isExpired = false AND s.isUse = false " +
-            "ORDER BY s.expiredDate DESC")
+            "ORDER BY s.createdAt ASC")
     List<StampLog> findValidStampLogs(@Param("storeCustomerId") Long storeCustomerId);
 
     @Modifying

@@ -32,8 +32,11 @@ public class StoreCustomer extends BaseEntity {
     @OneToMany(mappedBy = "storeCustomer",fetch = FetchType.LAZY)
     private final List<StampLog> stampLogs = new ArrayList<>();
 
+    /** 총 스탬프 몇번 적립했는지 */
+    private int totalStampCount;
+
     /** 몇번 스탬프 적립 완료 했는지 */
-    private int completedCount;
+    private int totalUseStampCount;
 
     /** 해당 상점 고객 만료 여부 */
     private boolean isExpired;
@@ -48,7 +51,17 @@ public class StoreCustomer extends BaseEntity {
         StoreCustomer storeCustomer = new StoreCustomer();
         storeCustomer.store = store;
         storeCustomer.customer = customer;
+        storeCustomer.totalStampCount = 0;
+        storeCustomer.totalUseStampCount = 0;
         return storeCustomer;
+    }
+
+    public void updateTotalStampCount(){
+        this.totalStampCount++;
+    }
+
+    public void updateTotalUseStampCount(){
+        this.totalUseStampCount++;
     }
 
     public void updateLastCollectedDate(){

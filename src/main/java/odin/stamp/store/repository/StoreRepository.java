@@ -16,7 +16,7 @@ public interface StoreRepository extends JpaRepository<Store,Long> {
      */
 //    Store findByAccount_Id(Long accountId);
 
-    @Query("SELECT DISTINCT s FROM Store s " +
+    @Query("SELECT s FROM Store s " +
             "LEFT JOIN FETCH s.stampConfig " +
             "LEFT JOIN FETCH s.storeCustomers " +
             "WHERE s.account.id = :accountId")

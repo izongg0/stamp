@@ -34,6 +34,7 @@ public class Store extends BaseEntity {
     @JoinColumn(name = "account_id")
     private Account account;
 
+    @Setter
     @OneToOne(mappedBy = "store",fetch = FetchType.LAZY)
     private StampConfig stampConfig;
 
@@ -52,6 +53,7 @@ public class Store extends BaseEntity {
 
     @OneToMany(mappedBy = "store",fetch = FetchType.LAZY)
     private List<StoreCustomer> storeCustomers = new ArrayList<>();
+
 
     public Store(Account account, String name, String phoneNumber, String registrationNumber) {
         this.account = account;

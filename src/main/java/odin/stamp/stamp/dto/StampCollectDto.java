@@ -13,4 +13,8 @@ public class StampCollectDto {
 
     private final Integer collectCount = 1;
 
+    public StampCollectDto(Long storeId, String phoneNumber) {
+        this.storeId = storeId;
+        this.phoneNumber = phoneNumber;
+    }
 }

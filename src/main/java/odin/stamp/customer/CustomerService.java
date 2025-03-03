@@ -1,15 +1,21 @@
 package odin.stamp.customer;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import odin.stamp.customer.dto.CustomerStampStatusDto;
 import odin.stamp.customer.dto.StoreCustomerCreateDto;
 import odin.stamp.customer.exception.CustomerAlreadyExistException;
+import odin.stamp.customer.exception.StoreCustomerNotFoundException;
 import odin.stamp.customer.repository.CustomerRepository;
 import odin.stamp.customer.repository.StoreCustomerRepository;
+import odin.stamp.stamp.StampLog;
+import odin.stamp.stamp.dto.StampLogResDto;
+import odin.stamp.stamp.repository.StampLogRepository;
 import odin.stamp.store.Store;
 import odin.stamp.store.StoreService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -17,11 +23,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final StampLogRepository stampLogRepository;
     private final StoreCustomerRepository storeCustomerRepository;
     private final StoreService storeService;
 
     @Transactional
     public StoreCustomer create(String phoneNumber,Long storeId){
+
 
         Store store = storeService.getByStoreId(storeId);
 
@@ -44,7 +52,18 @@ public class CustomerService {
     public StoreCustomer get(String phoneNumber, Long storeId){
 
         return storeCustomerRepository.findByCustomerPhoneAndStoreId(phoneNumber, storeId)
-                .orElseThrow(()-> new EntityNotFoundException("고객이 존재하지 않습니다."));
+                .orElseThrow(StoreCustomerNotFoundException::new);
+    }
+
+    public CustomerStampStatusDto getStampStatus(Long storeCustomerId){
+        List<StampLog> stampLogs = stampLogRepository.findValidStampLogs(storeCustomerId);
+        List<StampLogResDto> stampLogResDtos = StampLogResDto.fromEntityList(stampLogs);
+
+        return CustomerStampStatusDto.of(
+                storeCustomerId,
+                stampLogs,
+                stampLogResDtos
+        );
     }
 
 }

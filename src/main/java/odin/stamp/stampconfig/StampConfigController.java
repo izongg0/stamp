@@ -31,7 +31,6 @@ public class StampConfigController {
     })
     public ResponseEntity<Void> update(@RequestBody StampConfigUpdateDto dto,
                                             @PathVariable("storeId") Long storeId) {
-        log.info("durldhsk");
         stampConfigService.update(dto,storeId);
         return ResponseEntity.noContent().build();
     }

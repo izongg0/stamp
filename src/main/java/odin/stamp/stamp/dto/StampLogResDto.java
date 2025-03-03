@@ -42,7 +42,6 @@ public class StampLogResDto {
         this.id = stampLog.getId();
         this.storeCustomerId = stampLog.getStoreCustomer().getId();
         this.collectCount = stampLog.getCollectCount();
-        this.stampSequence = stampLog.getStampSequence();
         this.expiredDate = stampLog.getExpiredDate();
         this.isUse = stampLog.isUse();
         this.isExpired = stampLog.isExpired();

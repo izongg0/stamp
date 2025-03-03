@@ -1,5 +1,7 @@
 package odin.stamp.store;
 
+import odin.stamp.stampconfig.StampConfigService;
+import odin.stamp.stampconfig.repository.StampConfigRepository;
 import odin.stamp.store.dto.StoreCreateDto;
 import odin.stamp.store.repository.StoreRepository;
 import odin.stamp.user.account.Account;
@@ -26,8 +28,15 @@ class StoreServiceTest {
     @Mock
     private StoreRepository storeRepository;
 
+
     @InjectMocks
     private StoreService storeService;
+
+    @Mock
+    private StampConfigService stampConfigService;
+
+    @Mock
+    private StampConfigRepository stampConfigRepository;
 
     @Test
     void testCreateStore_Success() {

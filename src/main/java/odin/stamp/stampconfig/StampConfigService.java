@@ -1,11 +1,9 @@
 package odin.stamp.stampconfig;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import odin.stamp.stampconfig.dto.StampConfigUpdateDto;
+import odin.stamp.stampconfig.exception.StampConfigNotFoundException;
 import odin.stamp.stampconfig.repository.StampConfigRepository;
 import odin.stamp.store.Store;
 import org.springframework.stereotype.Service;
@@ -28,7 +26,7 @@ public class StampConfigService {
     public void update(StampConfigUpdateDto dto,Long storeId){
 
         StampConfig stampConfig = stampConfigRepository.findByStoreId(storeId)
-                .orElseThrow(() -> new EntityNotFoundException("스탬프 설정을 찾을 수 없습니다. " + storeId));
+                .orElseThrow(StampConfigNotFoundException:: new);
 
         stampConfig.update(
                 dto.getCompletedStampCount(),
@@ -43,7 +41,7 @@ public class StampConfigService {
 
     public StampConfig get(Long storeId){
         return stampConfigRepository.findByStoreId(storeId)
-                .orElseThrow(() -> new EntityNotFoundException("스탬프 설정을 찾을 수 없습니다. " + storeId));
+                .orElseThrow(StampConfigNotFoundException::new);
     }
 
 

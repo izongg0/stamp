@@ -30,6 +30,7 @@ public class StoreController {
     public ResponseEntity<StoreGetResDto> getStore(@AuthenticationPrincipal CustomUserDetails principal){
         Long accountId = principal.getId();
         Store store = storeService.get(accountId);
+
         return ResponseEntity.ok(
                 StoreGetResDto.from(store));
     }
