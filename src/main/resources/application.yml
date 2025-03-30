@@ -1,17 +1,24 @@
 spring:
+  config:
+    import: classpath:/config/secret.yml  # secret.yml 경로
   application:
     name: stamp
 
-  datasource:
-    url: jdbc:mariadb://localhost:3306/stamp
-    username: root
-    password: 1234
-    driver-class-name: org.mariadb.jdbc.Driver
-
+# 로컬디비
+#  datasource:
+##    url: jdbc:mariadb://db:3306/stamp
+#    url: jdbc:mariadb://localhost:3306/stamp
+#    username: root
+#    password: 1234
+#    driver-class-name: org.mariadb.jdbc.Driver
   jpa:
-    database-platform: org.hibernate.dialect.MariaDBDialect
+    database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: update
+#server:
+#  address: 0.0.0.0
+##  address: 192.168.0.103
+#  port: 8080
 
 jwt:
   secretKey: dcf0121fac552a559245f91e9f93962b8350c0773b5e7344473550c4857cf81e

@@ -29,12 +29,8 @@ public class StampLog extends BaseEntity {
     @JoinColumn(name = "store_customer_id")
     private StoreCustomer storeCustomer;
 
-
     /** 몇개적립인지 */
     private int collectCount;
-
-
-
 
     /** 스탬프 만료일 */
     private LocalDateTime expiredDate;
@@ -64,6 +60,7 @@ public class StampLog extends BaseEntity {
         stampLog.collectCount = collectCount;
 
 
+        storeCustomer.updateTotalStampCount(collectCount);
 
         /*
           현재 날짜 + 스탬프 설정에서 저장한 스탬프 만료기간

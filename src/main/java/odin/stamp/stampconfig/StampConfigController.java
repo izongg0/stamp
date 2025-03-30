@@ -6,9 +6,13 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import odin.stamp.common.authentication.CustomUserDetails;
 import odin.stamp.stampconfig.dto.StampConfigGetResDto;
 import odin.stamp.stampconfig.dto.StampConfigUpdateDto;
+import odin.stamp.store.Store;
+import odin.stamp.store.StoreService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,30 +22,27 @@ import org.springframework.web.bind.annotation.*;
 public class StampConfigController {
 
     private final StampConfigService stampConfigService;
+    private final StoreService storeService;
 
     /**
      *
      * @param  dto 상점 설정 수정
-     * @param storeId 상점 id
      * @return ResponseEntity
      */
-    @PatchMapping("/{storeId}")
-    @Parameters({
-            @Parameter(name = "storeId", description = "상점 Id", required = true,in = ParameterIn.PATH),
-    })
+    @PatchMapping()
     public ResponseEntity<Void> update(@RequestBody StampConfigUpdateDto dto,
-                                            @PathVariable("storeId") Long storeId) {
-        stampConfigService.update(dto,storeId);
+                                       @AuthenticationPrincipal CustomUserDetails principal) {
+        Store store = storeService.get(principal.getId());
+        stampConfigService.update(dto,store.getId());
         return ResponseEntity.noContent().build();
     }
 
-    @Parameters({
-            @Parameter(name = "storeId", description = "상점 Id", required = true,in = ParameterIn.PATH),
-    })
-    @GetMapping("/{storeId}")
-    public ResponseEntity<StampConfigGetResDto> getStampConfig(@PathVariable("storeId") Long storeId){
 
-        StampConfig stampConfig = stampConfigService.get(storeId);
+    @GetMapping()
+    public ResponseEntity<StampConfigGetResDto> getStampConfig(@AuthenticationPrincipal CustomUserDetails principal){
+        Store store = storeService.get(principal.getId());
+
+        StampConfig stampConfig = stampConfigService.get(store.getId());
         return ResponseEntity.ok(StampConfigGetResDto.from(stampConfig));
     }
 

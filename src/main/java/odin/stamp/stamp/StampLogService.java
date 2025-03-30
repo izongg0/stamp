@@ -2,6 +2,9 @@ package odin.stamp.stamp;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import odin.stamp.coupon.Coupon;
+import odin.stamp.coupon.dto.CouponUseReqDto;
+import odin.stamp.coupon.repository.CouponRepository;
 import odin.stamp.customer.Customer;
 import odin.stamp.customer.CustomerService;
 import odin.stamp.customer.StoreCustomer;
@@ -37,44 +40,65 @@ public class StampLogService {
     private final CustomerService customerService;
     private final StampLogRepository stampLogRepository;
     private final StoreRepository storeRepository;
+    private final CouponRepository couponRepository;
 
     @Transactional
-    public StampCollectResDto collect(StampCollectDto dto) {
+    public StampCollectResDto collect(StampCollectDto dto,Long storeId) {
 
-        Store store = storeRepository.findById(dto.getStoreId())
+        Store store = storeRepository.findById(storeId)
                 .orElseThrow(StoreNotFountException::new);
 
         StampConfig stampConfig = store.getStampConfig();
 
 
         // 고객 정보 조회 (없으면 새로 생성)
-        StoreCustomer storeCustomer = storeCustomerRepository.findByCustomerPhoneAndStoreId(dto.getPhoneNumber(), dto.getStoreId())
-                .orElseGet(() -> customerService.create(dto.getPhoneNumber(), dto.getStoreId()));
+        StoreCustomer storeCustomer = storeCustomerRepository.findByCustomerPhoneAndStoreId(dto.getPhoneNumber(), storeId)
+                .orElseGet(() -> customerService.create(dto.getPhoneNumber(), storeId));
 
         // 스탬프 리스트에서 만료된거 확인한 후 업데이트
         expireStamps(storeCustomer.getId());
 
+        expireCoupon(storeCustomer.getId());
+
         // 만료처리하고 난 이후,  사용 가능한 스탬프 개수 확인
         List<StampLog> stampLogs = get(storeCustomer.getId());
 
-        // 적립 실패했을 경우를 위한 반환 데이터
-        List<StampLogResDto> stampLogResDtos = StampLogResDto.fromEntityList(stampLogs);
+        // 현재 9개이고 이번에 적립하면 10개이므로 쿠폰으로 교환해줘야함.
+        if(stampLogs.size() == stampConfig.getCompletedStampCount()-1){
+            // 쿠폰으로 전환해야함
 
 
-        // 스탬프가 최대 스탬프 적립 개수 이상이면 적립 금지 (예외 발생)
-        if (stampLogs.size() >= stampConfig.getMaxStampCount()) {
-            // 적립 실패했을 경우를 위한 반환 데이터
-            CustomerStampStatusDto stampStatusDto = CustomerStampStatusDto.of(
+            Coupon coupon = Coupon.collect(storeCustomer, stampConfig);
+            couponRepository.save(coupon);
+
+            StampLog stampLog =  StampLog.collect(storeCustomer, stampConfig, dto.getCollectCount());
+            stampLogRepository.save(stampLog);
+
+            List<Coupon> whenSuccessCoupons = getCoupons(storeCustomer.getId());
+
+            List<StampLog> whenSuccessAccumulatedStamps = stampLogRepository.findByStoreCustomer_Id(storeCustomer.getId());
+            // 최종 총 스탬프
+            List<StampLog> whenSuccessStampLogs = get(storeCustomer.getId());
+            List<StampLogResDto> whenSuccessresDtos = StampLogResDto.fromEntityList(whenSuccessStampLogs);
+
+            whenSuccessStampLogs.stream()
+                    .limit(stampConfig.getCompletedStampCount())
+                    .forEach(StampLog::use); // use() 메서드 호출
+
+            CustomerStampStatusDto whenSuccessStampStatusDto = CustomerStampStatusDto.of(
                     storeCustomer.getId(),
-                    stampLogs,
-                    stampLogResDtos
+                    dto.getPhoneNumber(),
+                    whenSuccessStampLogs,
+                    whenSuccessAccumulatedStamps,
+                    whenSuccessCoupons,
+                    whenSuccessresDtos
             );
             return StampCollectResDto.of(
                     storeCustomer.getId(),
                     dto.getPhoneNumber(),
-                    false,
-                    "최대 적립 개수를 초과하였습니다.",
-                    stampStatusDto
+                    true,
+                    "",
+                    whenSuccessStampStatusDto
             );
         }
         // 적립
@@ -86,16 +110,22 @@ public class StampLogService {
         // 스탬프 디비에 저장
         stampLogRepository.save(stampLog);
 
+        List<Coupon> coupons = getCoupons(storeCustomer.getId());
+
         // 최종 총 스탬프
         List<StampLog> finalStampLogs = get(storeCustomer.getId());
         List<StampLogResDto> finalResDtos = StampLogResDto.fromEntityList(finalStampLogs);
 
         // 고객 총 스탬프 적립 횟수 증가
-//        storeCustomer.updateTotalStampCount();
+
+        List<StampLog> accumulatedStamps = stampLogRepository.findByStoreCustomer_Id(storeCustomer.getId());
 
         CustomerStampStatusDto finalStampStatusDto = CustomerStampStatusDto.of(
                 storeCustomer.getId(),
+                dto.getPhoneNumber(),
                 finalStampLogs,
+                accumulatedStamps,
+                coupons,
                 finalResDtos
         );
 
@@ -106,10 +136,39 @@ public class StampLogService {
                 "",
                 finalStampStatusDto
         );
-
     }
 
 
+    @Transactional
+    public CustomerStampStatusDto useCoupon(CouponUseReqDto dto,Long storeId) {
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(StoreNotFountException::new);
+
+        // 고객 정보 조회 (없으면 새로 생성)
+        StoreCustomer storeCustomer = storeCustomerRepository.findById(dto.getStoreCustomerId())
+                .orElseThrow(StoreCustomerNotFoundException::new);
+
+        StampConfig stampConfig = store.getStampConfig();
+
+        expireCoupon(dto.getStoreCustomerId());
+
+        List<Coupon> coupons = getCoupons(dto.getStoreCustomerId());
+        if (coupons.isEmpty()) {
+            throw new NotEnoughStampsException();
+        }
+
+        Coupon coupon = coupons.get(0); // 첫 번째 쿠폰 가져오기
+        coupon.use();
+
+//        coupons.stream()
+//                .findFirst()
+//                .ifPresent(Coupon::use);
+
+        return createStampUseResponse(storeCustomer, get(storeCustomer.getId())).getStampStatusDto();
+
+    }
+
+    // 사용안함
     @Transactional
     public StampUseResDto useStamp(StampUseReqDto dto) {
 
@@ -152,9 +211,15 @@ public class StampLogService {
     private StampUseResDto createStampUseResponse(StoreCustomer storeCustomer, List<StampLog> stampLogs) {
 
         List<StampLogResDto> finalResDtos = StampLogResDto.fromEntityList(stampLogs);
+        List<Coupon> coupons = getCoupons(storeCustomer.getId());
+        List<StampLog> accumulatedStamps = stampLogRepository.findByStoreCustomer_Id(storeCustomer.getId());
+
         CustomerStampStatusDto stampStatusDto = CustomerStampStatusDto.of(
                 storeCustomer.getId(),
+                storeCustomer.getCustomer().getPhoneNumber(),
                 stampLogs,
+                accumulatedStamps,
+                coupons,
                 finalResDtos
         );
 
@@ -171,7 +236,17 @@ public class StampLogService {
         return stampLogRepository.findValidStampLogs(storeCustomerId);
     }
 
+    // 만료되지 않은 스탬프 조회
+    public List<Coupon> getCoupons(Long storeCustomerId) {
+        System.out.println(couponRepository.findValidCoupon(storeCustomerId));
+        return couponRepository.findValidCoupon(storeCustomerId);
+    }
+
     public void expireStamps(Long storeCustomerId) {
+        stampLogRepository.expireStamps(storeCustomerId, LocalDateTime.now());
+    }
+
+    public void expireCoupon(Long storeCustomerId) {
         stampLogRepository.expireStamps(storeCustomerId, LocalDateTime.now());
     }
 

@@ -41,6 +41,8 @@ public class StampConfig extends BaseEntity {
     /** 스탬프 유효기간 */
     private Integer stampValidityPeriod;
 
+    /** 스탬프 유효기간 */
+    private Integer couponValidityPeriod;
 
     /** 스탬프 사용 시 비밀번호 */
     private String usePassword;
@@ -56,12 +58,13 @@ public class StampConfig extends BaseEntity {
         stampConfig.stampCollectRule = "한 잔 구매 시 1개 적립";
         stampConfig.recollectTime = 5;
         stampConfig.stampValidityPeriod = 90;
+        stampConfig.couponValidityPeriod = 90;
         stampConfig.usePassword = "1234";
 
         return stampConfig;
     }
 
-    public void update(Integer completedStampCount, Integer maxStampCount, String rewardItem, String stampCollectRule, Integer recollectTime, Integer stampValidityPeriod, String usePassword){
+    public void update(Integer completedStampCount, Integer maxStampCount, String rewardItem, String stampCollectRule, Integer recollectTime, Integer stampValidityPeriod, Integer couponValidityPeriod,String usePassword){
 
         if(completedStampCount != null) this.completedStampCount = completedStampCount;
         if(maxStampCount != null) this.maxStampCount = maxStampCount;
@@ -69,6 +72,8 @@ public class StampConfig extends BaseEntity {
         if(stampCollectRule != null) this.stampCollectRule = stampCollectRule;
         if(recollectTime != null) this.recollectTime = recollectTime;
         if(stampValidityPeriod != null) this.stampValidityPeriod = stampValidityPeriod;
+        if(couponValidityPeriod != null) this.couponValidityPeriod = couponValidityPeriod;
+
         if(usePassword != null) this.usePassword = usePassword;
 
     }

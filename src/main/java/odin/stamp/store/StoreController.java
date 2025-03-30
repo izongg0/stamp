@@ -30,13 +30,8 @@ public class StoreController {
     public ResponseEntity<StoreGetResDto> getStore(@AuthenticationPrincipal CustomUserDetails principal){
         Long accountId = principal.getId();
         Store store = storeService.get(accountId);
-
+        System.out.println(store.getStampConfig());
         return ResponseEntity.ok(
                 StoreGetResDto.from(store));
     }
-
-//    @GetMapping
-//    public String test(){
-//        return "done";
-//    }
 }

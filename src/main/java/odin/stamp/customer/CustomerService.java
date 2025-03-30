@@ -1,6 +1,8 @@
 package odin.stamp.customer;
 
 import lombok.RequiredArgsConstructor;
+import odin.stamp.coupon.Coupon;
+import odin.stamp.coupon.repository.CouponRepository;
 import odin.stamp.customer.dto.CustomerStampStatusDto;
 import odin.stamp.customer.dto.StoreCustomerCreateDto;
 import odin.stamp.customer.exception.CustomerAlreadyExistException;
@@ -26,6 +28,7 @@ public class CustomerService {
     private final StampLogRepository stampLogRepository;
     private final StoreCustomerRepository storeCustomerRepository;
     private final StoreService storeService;
+    private final CouponRepository couponRepository;
 
     @Transactional
     public StoreCustomer create(String phoneNumber,Long storeId){
@@ -57,11 +60,18 @@ public class CustomerService {
 
     public CustomerStampStatusDto getStampStatus(Long storeCustomerId){
         List<StampLog> stampLogs = stampLogRepository.findValidStampLogs(storeCustomerId);
+        List<Coupon> coupons = couponRepository.findValidCoupon(storeCustomerId);
         List<StampLogResDto> stampLogResDtos = StampLogResDto.fromEntityList(stampLogs);
+        List<StampLog> accumulatedStamps = stampLogRepository.findByStoreCustomer_Id(storeCustomerId);
+        StoreCustomer storeCustomer = storeCustomerRepository.findById(storeCustomerId)
+                .orElseThrow(StoreCustomerNotFoundException::new);
 
         return CustomerStampStatusDto.of(
                 storeCustomerId,
+                storeCustomer.getCustomer().getPhoneNumber(),
                 stampLogs,
+                accumulatedStamps,
+                coupons,
                 stampLogResDtos
         );
     }

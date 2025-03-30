@@ -25,6 +25,9 @@ public class StampConfigUpdateDto {
     /** 스탬프 유효기간 */
     private Integer stampValidityPeriod;
 
+    /** 스탬프 유효기간 */
+    private Integer couponValidityPeriod;
+
     /** 스탬프 사용 시 비밀번호 */
     private String usePassword;
 

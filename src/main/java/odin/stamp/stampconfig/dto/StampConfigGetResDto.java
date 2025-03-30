@@ -23,7 +23,7 @@ public class StampConfigGetResDto {
     /** 스탬프 유효기간 */
     private final Integer stampValidityPeriod;
 
-
+    private final Integer couponValidityPeriod;
 
     /** 스탬프 사용 시 비밀번호 */
     private final String usePassword;
@@ -35,6 +35,7 @@ public class StampConfigGetResDto {
                 stampConfig.getStampCollectRule(),
                 stampConfig.getRecollectTime(),
                 stampConfig.getStampValidityPeriod(),
+                stampConfig.getCouponValidityPeriod(),
                 stampConfig.getUsePassword()
         );
 

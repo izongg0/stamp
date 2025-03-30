@@ -38,6 +38,9 @@ public class StoreCustomer extends BaseEntity {
     /** 몇번 스탬프 적립 완료 했는지 */
     private int totalUseStampCount;
 
+    /** 현재 교환권 개수 */
+    private int couponCount;
+
     /** 해당 상점 고객 만료 여부 */
     private boolean isExpired;
 
@@ -53,11 +56,12 @@ public class StoreCustomer extends BaseEntity {
         storeCustomer.customer = customer;
         storeCustomer.totalStampCount = 0;
         storeCustomer.totalUseStampCount = 0;
+        storeCustomer.couponCount = 0;
         return storeCustomer;
     }
 
-    public void updateTotalStampCount(){
-        this.totalStampCount++;
+    public void updateTotalStampCount(Integer count){
+        this.totalStampCount+=count;
     }
 
     public void updateTotalUseStampCount(){

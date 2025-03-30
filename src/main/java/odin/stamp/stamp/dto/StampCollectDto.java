@@ -7,14 +7,12 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public class StampCollectDto {
 
-    private Long storeId;
 
     private String phoneNumber;
 
     private final Integer collectCount = 1;
 
-    public StampCollectDto(Long storeId, String phoneNumber) {
-        this.storeId = storeId;
+    public StampCollectDto(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
 }

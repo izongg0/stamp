@@ -2,6 +2,8 @@ package odin.stamp.store.dto;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import odin.stamp.stampconfig.StampConfig;
+import odin.stamp.stampconfig.dto.StampConfigGetResDto;
 import odin.stamp.store.Store;
 
 @Getter
@@ -18,13 +20,15 @@ public class StoreGetResDto {
     /** 사업자 번호 */
     private final String registrationNumber;
 
+    private final StampConfigGetResDto stampConfigGetResDto;
 
     public static StoreGetResDto from(Store store) {
         return new StoreGetResDto(
                 store.getId(),
                 store.getName(),
                 store.getPhoneNumber(),
-                store.getRegistrationNumber()
+                store.getRegistrationNumber(),
+                StampConfigGetResDto.from(store.getStampConfig())
         );
     }
 }

@@ -35,6 +35,7 @@ public class StampConfigService {
                 dto.getStampCollectRule(),
                 dto.getRecollectTime(),
                 dto.getStampValidityPeriod(),
+                dto.getCouponValidityPeriod(),
                 dto.getUsePassword()
         );
     }
