@@ -76,11 +76,7 @@ jobs:
           script: |
             sudo systemctl start docker
             sudo docker pull izongg/odin_stamp
-            CONTAINER_ID=$(docker ps -q --filter ancestor=izongg/odin_stamp)
-            if [ -n "$CONTAINER_ID" ]; then
-              docker stop $CONTAINER_ID
-              docker rm $CONTAINER_ID
-            fi
+            sudo docker stop $(docker ps -aq)
             sudo docker run -d -p 8080:8080 --platform linux/amd64 izongg/odin_stamp
 
   dependency-submission:
