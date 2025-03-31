@@ -9,8 +9,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Slf4j
 public class TestController {
-    @GetMapping("/test")
-    public String test(@AuthenticationPrincipal CustomUserDetails principal){
-        return "true";
+    @GetMapping("/health-check")
+    public String test(){
+
+        return "혜령 사랑해 ♥";
     }
 }
