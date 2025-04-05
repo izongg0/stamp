@@ -12,6 +12,6 @@ public class TestController {
     @GetMapping("/health-check")
     public String test(){
 
-        return "혜령 사랑해 ♥♥♥";
+        return "혜령 사랑해 ♥♥♥ 혜령 사랑해 ♥♥♥ 혜령 사랑해 ♥♥♥ 혜령 사랑해 ♥♥♥";
     }
 }
