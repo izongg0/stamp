@@ -22,3 +22,7 @@ sudo systemctl start docker
 sudo docker pull izongg/odin_stamp
 docker stop $(docker ps -aq)
 sudo docker run -d -p 8080:8080 --platform linux/amd64 izongg/odin_stamp
+
+
+도커에서 잰킨스 실행 redhat
+docker run -d -p 8080:8081 -p 50000:50000   -v /jenkins:/var/jenkins   -v ~/.ssh:/root/.ssh   -v /var/run/docker.sock:/var/run/docker.sock   --name jenkins -u root jenkins/jenkins:jdk17
