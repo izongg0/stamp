@@ -63,7 +63,6 @@ public class AccountController {
         return ResponseEntity.ok(AccountSignInGetResDto.of(token));
     }
 
-
     /**
      * 접근 토큰 재발급
      * @param refreshToken
