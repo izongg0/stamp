@@ -68,15 +68,15 @@ public class AccountController {
      * @param refreshToken
      * @return
      */
-//    @PostMapping("/token/re-issuance")
-//    public ResponseEntity<AccountTokenGetResDto> AccessTokenReIssuance(
-//            @RequestHeader(name="Authorization") String refreshToken) {
-//
-//        Token token = accountService.reIssuance(refreshToken);
-//
-//        return ResponseEntity.ok(new AccountTokenGetResDto(
-//                token.getAccessToken(), token.getRefreshToken()));
-//    }
+    @PostMapping("/token/re-issuance")
+    public ResponseEntity<AccountTokenGetResDto> AccessTokenReIssuance(
+            @RequestHeader(name="Authorization") String refreshToken) {
+
+        Token token = accountService.reissueToken(refreshToken);
+
+        return ResponseEntity.ok(new AccountTokenGetResDto(
+                token.getAccessToken(), token.getRefreshToken()));
+    }
 
 
 }

@@ -76,6 +76,10 @@ public class TokenProvider {
                 .setExpiration(expiration);
     }
 
+    public String getEmailFromToken(String token) {
+        return getClaims(token).getSubject(); // subject = email
+    }
+
     /**
      * 토큰으로 사용자 정보를 만들어냄.
      * 옳은 사용자인지 확인하는 용도

@@ -66,31 +66,30 @@ public class AccountService {
 
 
 
-//    /**
-//     * 토큰 재발급
-//     * @param refreshToken
-//     * @return
-//     */
-//    public Token reIssuance(String refreshToken) {
-//        // Refresh token 검증
-//        if(refreshToken == null || !tokenProvider.validateToken(refreshToken)) {
-//            throw new JwtAuthenticationException("authenticationFailed.account.token");
-//        }
-//
-//        // Refresh token에서 이메일 변환
-//        Account account = accountRepository
-//                .findByEmail(tokenProvider.getEmailByRefreshToken(refreshToken))
-//                .orElseThrow(AccountNotFoundException::new);
-//
-//        // token 재발급
-//        return new Token(
-//                tokenProvider.generateAccessToken(
-//                        account.getId(),
-//                        account.getEmail(),
-//                        account.getName()),
-//                tokenProvider.generateRefreshToken(
-//                        account.getEmail()
-//                )
-//        );
-//    }
+    /**
+     * 토큰 재발급
+     * @param refreshToken
+     * @return
+     */
+    @Transactional
+    public Token reissueToken(String refreshToken) {
+        // 1️⃣ refreshToken 유효성 검사
+        if (refreshToken == null || !tokenProvider.validateToken(refreshToken)) {
+            throw new JwtAuthenticationException("유효하지 않은 리프레시 토큰입니다.");
+        }
+
+        // 2️⃣ refreshToken에서 이메일 추출
+        String email = tokenProvider.getEmailFromToken(refreshToken);
+
+        // 3️⃣ 사용자 조회
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(AccountNotFoundException::new);
+
+        // 4️⃣ 토큰 재발급
+        String newAccessToken = tokenProvider.generateAccessToken(account);
+        String newRefreshToken = tokenProvider.generateRefreshToken(email);
+
+        // 5️⃣ 토큰 객체 반환
+        return new Token(newAccessToken, newRefreshToken);
+    }
 }
